@@ -17,7 +17,7 @@ const MODULES = [
     to: '/scripts',
     title: '3. Générateur de scripts',
     desc: 'Générez les scripts SPSS, Stata et R à partir d’un XLSForm valide.',
-    ready: false,
+    ready: true,
   },
   {
     to: '/donnees',

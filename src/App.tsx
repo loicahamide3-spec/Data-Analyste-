@@ -2,6 +2,7 @@ import { NavLink, Route, Routes } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Validator } from './pages/Validator';
 import { Generator } from './pages/Generator';
+import { Scripts } from './pages/Scripts';
 import { ComingSoon } from './pages/ComingSoon';
 
 export function App() {
@@ -24,15 +25,7 @@ export function App() {
           <Route path="/" element={<Home />} />
           <Route path="/validateur" element={<Validator />} />
           <Route path="/generateur" element={<Generator />} />
-          <Route
-            path="/scripts"
-            element={
-              <ComingSoon
-                title="Générateur de scripts d'analyse"
-                description="Génération automatique des scripts SPSS, Stata et R à partir d'un XLSForm valide."
-              />
-            }
-          />
+          <Route path="/scripts" element={<Scripts />} />
           <Route
             path="/donnees"
             element={
