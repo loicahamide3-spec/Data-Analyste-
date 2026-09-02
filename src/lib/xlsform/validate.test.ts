@@ -152,6 +152,28 @@ describe('validateXlsForm — types et listes', () => {
     expect(report.issues.some((i) => i.message.includes("n'est jamais fermé"))).toBe(true);
   });
 
+  it("n'exige pas de nom ni de libellé sur end_group / end_repeat (non requis par KoboToolbox)", () => {
+    const wb = makeWorkbook({
+      survey: {
+        headers: surveyHeaders(),
+        rows: [
+          { type: 'begin_group', name: 'grp', label: 'Groupe' },
+          { type: 'text', name: 'nom', label: 'Nom' },
+          { type: 'end_group', name: '', label: '' },
+          { type: 'begin_repeat', name: 'rpt', label: 'Répétition' },
+          { type: 'text', name: 'x', label: 'X' },
+          { type: 'end_repeat', name: '', label: '' },
+        ],
+      },
+      choices: { headers: ['list_name', 'name', 'label'], rows: [] },
+      settings: DEFAULT_SETTINGS,
+    });
+    const report = validateXlsForm(wb, DEFAULT_OPTIONS);
+    expect(report.counts.bloquant).toBe(0);
+    expect(report.issues.some((i) => i.message.includes("n'a pas de nom"))).toBe(false);
+    expect(report.issues.some((i) => i.message.includes("n'a pas de libellé"))).toBe(false);
+  });
+
   it('signale un calculate sans formule', () => {
     const wb = makeWorkbook({
       survey: { headers: surveyHeaders(), rows: [{ type: 'calculate', name: 'calc1', label: '' }] },

@@ -124,6 +124,8 @@ export function validateXlsForm(
     const name = cellToString(row.values['name']);
     const type = cellToString(row.values['type']);
     if (!type) continue; // ligne sans type: signalée ailleurs si nécessaire
+    // end_group / end_repeat n'ont pas besoin de nom : KoboToolbox l'ignore.
+    if (type === 'end_group' || type === 'end_repeat' || type === 'end repeat') continue;
     if (!name) {
       issues.push(
         makeIssue('bloquant', 'survey', `La question de type « ${type || '?'} » n'a pas de nom (colonne name).`, {
@@ -342,7 +344,8 @@ export function validateXlsForm(
 
     // ---- 2.7 Qualité méthodologique --------------------------------
     const label = cellToString(row.values['label']);
-    if (!label && base !== 'calculate') {
+    const labelOptional = base === 'calculate' || base === 'end_group' || base === 'end_repeat' || base === 'end repeat';
+    if (!label && !labelOptional) {
       issues.push(
         makeIssue('avertissement', 'survey', `La question « ${name || row.rowNumber} » n'a pas de libellé (label).`, {
           row: row.rowNumber,
