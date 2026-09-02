@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import type { DictVariable } from './dictionary';
+import { slugifyFileName } from '../slugify';
 
 function choicesText(v: DictVariable): string {
   if (v.choices.length === 0) return '';
@@ -38,7 +39,7 @@ export function exportCodebookToPdf(variables: DictVariable[], formTitle: string
     headStyles: { fillColor: [30, 64, 90] },
   });
 
-  doc.save(`dictionnaire-variables-${formTitle.replace(/[^a-z0-9_-]+/gi, '_') || 'formulaire'}.pdf`);
+  doc.save(`dictionnaire-variables-${slugifyFileName(formTitle, 'formulaire')}.pdf`);
 }
 
 export function exportCodebookToXlsx(variables: DictVariable[], formTitle: string) {
@@ -55,5 +56,5 @@ export function exportCodebookToXlsx(variables: DictVariable[], formTitle: strin
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'dictionnaire');
-  XLSX.writeFile(wb, `dictionnaire-variables-${formTitle.replace(/[^a-z0-9_-]+/gi, '_') || 'formulaire'}.xlsx`);
+  XLSX.writeFile(wb, `dictionnaire-variables-${slugifyFileName(formTitle, 'formulaire')}.xlsx`);
 }

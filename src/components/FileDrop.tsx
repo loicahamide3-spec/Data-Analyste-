@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 
 interface FileDropProps {
   accept: string;
@@ -10,6 +10,7 @@ interface FileDropProps {
 export function FileDrop({ accept, onFile, label, hint }: FileDropProps) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
 
   const handleFiles = useCallback(
     (files: FileList | null) => {
@@ -36,13 +37,11 @@ export function FileDrop({ accept, onFile, label, hint }: FileDropProps) {
       <p>{label ?? 'Glissez-déposez votre fichier ici'}</p>
       <p>
         ou{' '}
-        <label htmlFor="file-input">
-          parcourir vos fichiers
-        </label>
+        <label htmlFor={inputId}>parcourir vos fichiers</label>
       </p>
       {hint && <p style={{ fontSize: '0.8rem' }}>{hint}</p>}
       <input
-        id="file-input"
+        id={inputId}
         ref={inputRef}
         type="file"
         accept={accept}

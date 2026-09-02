@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { SheetState } from './sheetState';
+import { slugifyFileName } from '../slugify';
 
 function sheetStateToAoa(state: SheetState): string[][] {
   const headers = state.headers;
@@ -19,6 +20,5 @@ export function downloadXlsForm(
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetStateToAoa(choices)), 'choices');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sheetStateToAoa(settings)), 'settings');
 
-  const safeName = fileBaseName.replace(/[^a-z0-9_-]+/gi, '_') || 'formulaire';
-  XLSX.writeFile(wb, `${safeName}.xlsx`);
+  XLSX.writeFile(wb, `${slugifyFileName(fileBaseName, 'formulaire')}.xlsx`);
 }

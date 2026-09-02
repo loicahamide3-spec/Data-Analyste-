@@ -2,9 +2,10 @@ import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import type { KoboDataset } from './importKobo';
 import { downloadTextFile } from '../downloadTextFile';
+import { slugifyFileName } from '../slugify';
 
 function baseName(fileName: string): string {
-  return (fileName.replace(/\.[^.]+$/, '') || 'donnees').replace(/[^a-z0-9_-]+/gi, '_');
+  return slugifyFileName(fileName.replace(/\.[^.]+$/, ''), 'donnees');
 }
 
 export function downloadDatasetAsCsv(dataset: KoboDataset) {

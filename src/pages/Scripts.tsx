@@ -8,6 +8,7 @@ import { generateStataScript } from '../lib/scripts/stata';
 import { generateRScript } from '../lib/scripts/r';
 import { exportCodebookToPdf, exportCodebookToXlsx } from '../lib/scripts/codebook';
 import { downloadTextFile } from '../lib/downloadTextFile';
+import { slugifyFileName } from '../lib/slugify';
 import type { ParsedWorkbook } from '../lib/xlsform/types';
 import { cellToString } from '../lib/xlsform/types';
 
@@ -38,7 +39,7 @@ export function Scripts() {
     }
   }
 
-  const baseName = formTitle.replace(/[^a-z0-9_-]+/gi, '_') || 'formulaire';
+  const baseName = slugifyFileName(formTitle, 'formulaire');
   const repeatCount = variables.filter((v) => v.inRepeat).length;
   const selectMultipleCount = variables.filter((v) => v.isSelectMultiple).length;
 

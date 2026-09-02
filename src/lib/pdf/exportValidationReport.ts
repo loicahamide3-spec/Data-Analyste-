@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { ValidationReport } from '../xlsform/types';
+import { slugifyFileName } from '../slugify';
 
 const SEVERITY_LABEL: Record<string, string> = {
   bloquant: 'Bloquant',
@@ -51,6 +52,6 @@ export function exportValidationReportToPdf(report: ValidationReport, fileName: 
     headStyles: { fillColor: [30, 64, 90] },
   });
 
-  const outName = fileName.replace(/\.xlsx?$/i, '') || 'formulaire';
+  const outName = slugifyFileName(fileName.replace(/\.xlsx?$/i, ''), 'formulaire');
   doc.save(`rapport-validation-${outName}.pdf`);
 }
