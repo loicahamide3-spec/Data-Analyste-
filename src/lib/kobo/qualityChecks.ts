@@ -21,6 +21,13 @@ export interface DuplicateGroup {
   rowIndexes: number[];
 }
 
+export interface CrossFieldIssue {
+  column: string;
+  relatedColumn: string;
+  count: number;
+  constraint: string;
+}
+
 export interface CollectionStats {
   totalSubmissions: number;
   averageDurationMinutes: number | null;
@@ -31,6 +38,7 @@ export interface QualityReport {
   completeness: CompletenessRow[];
   outliers: OutlierRow[];
   duplicates: DuplicateGroup[];
+  crossFieldIssues: CrossFieldIssue[];
   stats: CollectionStats;
 }
 
@@ -130,6 +138,73 @@ export function detectOutliers(dataset: KoboDataset, variables: DictVariable[], 
   return outliers;
 }
 
+function compareValues(a: string, op: string, b: string): boolean | null {
+  let av: number;
+  let bv: number;
+  const na = Number(a);
+  const nb = Number(b);
+  if (!Number.isNaN(na) && !Number.isNaN(nb)) {
+    av = na;
+    bv = nb;
+  } else {
+    const da = Date.parse(a);
+    const db = Date.parse(b);
+    if (Number.isNaN(da) || Number.isNaN(db)) return null;
+    av = da;
+    bv = db;
+  }
+  switch (op) {
+    case '>=':
+      return av >= bv;
+    case '<=':
+      return av <= bv;
+    case '>':
+      return av > bv;
+    case '<':
+      return av < bv;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Contrôle de cohérence entre variables liées, à partir des contraintes du
+ * XLSForm qui comparent la valeur saisie (.) à une autre variable référencée
+ * par ${...} (ex. ". >= ${date_debut}" pour une date de fin d'entretien).
+ */
+export function detectCrossFieldInconsistencies(dataset: KoboDataset, variables: DictVariable[]): CrossFieldIssue[] {
+  const issues: CrossFieldIssue[] = [];
+
+  for (const v of variables) {
+    if (!v.constraint || !dataset.headers.includes(v.name)) continue;
+
+    const checks: { op: string; ref: string; thisOnLeft: boolean }[] = [];
+    for (const m of v.constraint.matchAll(/\.\s*(>=|<=|>|<)\s*\$\{([^}]+)\}/g)) {
+      checks.push({ op: m[1], ref: m[2], thisOnLeft: true });
+    }
+    for (const m of v.constraint.matchAll(/\$\{([^}]+)\}\s*(>=|<=|>|<)\s*\./g)) {
+      checks.push({ op: m[2], ref: m[1], thisOnLeft: false });
+    }
+
+    for (const check of checks) {
+      if (!dataset.headers.includes(check.ref)) continue;
+      let count = 0;
+      for (const row of dataset.rows) {
+        const thisVal = row[v.name];
+        const refVal = row[check.ref];
+        if (!thisVal || !refVal) continue;
+        const result = check.thisOnLeft ? compareValues(thisVal, check.op, refVal) : compareValues(refVal, check.op, thisVal);
+        if (result === false) count += 1;
+      }
+      if (count > 0) {
+        issues.push({ column: v.name, relatedColumn: check.ref, count, constraint: v.constraint });
+      }
+    }
+  }
+
+  return issues;
+}
+
 function findColumn(headers: string[], patterns: RegExp[]): string | undefined {
   return headers.find((h) => patterns.some((p) => p.test(h)));
 }
@@ -173,6 +248,7 @@ export function buildQualityReport(dataset: KoboDataset, variables: DictVariable
     completeness: computeCompleteness(dataset),
     outliers: detectOutliers(dataset, variables, iqrFactor),
     duplicates: detectDuplicates(dataset),
+    crossFieldIssues: detectCrossFieldInconsistencies(dataset, variables),
     stats: computeCollectionStats(dataset),
   };
 }

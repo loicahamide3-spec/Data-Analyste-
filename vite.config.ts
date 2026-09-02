@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['app-icon.svg'],
       manifest: {
         name: 'Outils enquêtes XLSForm',
         short_name: 'XLSForm Outils',
@@ -21,9 +21,16 @@ export default defineConfig({
         start_url: './',
         icons: [
           {
-            src: 'favicon.svg',
+            src: 'app-icon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
+            purpose: 'any',
+          },
+          {
+            src: 'app-icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'maskable',
           },
         ],
       },

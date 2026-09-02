@@ -1,9 +1,15 @@
+import { lazy, Suspense } from 'react';
 import { NavLink, Route, Routes } from 'react-router-dom';
 import { Home } from './pages/Home';
-import { Validator } from './pages/Validator';
-import { Generator } from './pages/Generator';
-import { Scripts } from './pages/Scripts';
-import { DataProcessing } from './pages/DataProcessing';
+
+const Validator = lazy(() => import('./pages/Validator').then((m) => ({ default: m.Validator })));
+const Generator = lazy(() => import('./pages/Generator').then((m) => ({ default: m.Generator })));
+const Scripts = lazy(() => import('./pages/Scripts').then((m) => ({ default: m.Scripts })));
+const DataProcessing = lazy(() => import('./pages/DataProcessing').then((m) => ({ default: m.DataProcessing })));
+
+function PageLoading() {
+  return <div className="card">Chargement…</div>;
+}
 
 export function App() {
   return (
@@ -21,13 +27,15 @@ export function App() {
         </nav>
       </header>
       <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/validateur" element={<Validator />} />
-          <Route path="/generateur" element={<Generator />} />
-          <Route path="/scripts" element={<Scripts />} />
-          <Route path="/donnees" element={<DataProcessing />} />
-        </Routes>
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/validateur" element={<Validator />} />
+            <Route path="/generateur" element={<Generator />} />
+            <Route path="/scripts" element={<Scripts />} />
+            <Route path="/donnees" element={<DataProcessing />} />
+          </Routes>
+        </Suspense>
       </main>
       <footer className="app-footer">
         Traitement 100% local dans votre navigateur — aucun fichier n'est envoyé sur un serveur.

@@ -96,6 +96,7 @@ export function DataProcessing() {
             </div>
             <div className="summary-pill avertissement">🔁 {qualityReport.duplicates.length} doublon(s)</div>
             <div className="summary-pill avertissement">📉 {qualityReport.outliers.length} variable(s) avec valeurs aberrantes</div>
+            <div className="summary-pill avertissement">⚠ {qualityReport.crossFieldIssues.length} incohérence(s) entre variables liées</div>
           </div>
 
           {qualityReport.stats.byEnumerator.length > 0 && (
@@ -144,6 +145,24 @@ export function DataProcessing() {
                 {qualityReport.outliers.map((o) => (
                   <li key={o.column}>
                     <strong>{o.column}</strong> : {o.count} valeur(s) — {o.detail}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {qualityReport.crossFieldIssues.length > 0 && (
+            <>
+              <h4>Cohérence entre variables liées</h4>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 0.4rem' }}>
+                Détecté à partir des contraintes du XLSForm qui comparent une variable à une autre (ex. « . &gt;=
+                ${'{'}date_debut{'}'} »).
+              </p>
+              <ul>
+                {qualityReport.crossFieldIssues.map((c, i) => (
+                  <li key={i}>
+                    <strong>{c.column}</strong> / <strong>{c.relatedColumn}</strong> : {c.count} enregistrement(s)
+                    incohérent(s) (contrainte : {c.constraint}).
                   </li>
                 ))}
               </ul>

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { computeCompleteness, detectDuplicates, detectOutliers, computeCollectionStats } from './qualityChecks';
+import {
+  computeCompleteness,
+  detectDuplicates,
+  detectOutliers,
+  computeCollectionStats,
+  detectCrossFieldInconsistencies,
+} from './qualityChecks';
 import type { KoboDataset } from './importKobo';
 import type { DictVariable } from '../scripts/dictionary';
 
@@ -73,6 +79,39 @@ describe('detectOutliers', () => {
     const outliers = detectOutliers(dataset, [], 1.5);
     expect(outliers).toHaveLength(1);
     expect(outliers[0].source).toBe('statistique');
+  });
+});
+
+describe('detectCrossFieldInconsistencies', () => {
+  it('détecte une date de fin antérieure à la date de début via une contrainte « . >= ${...} »', () => {
+    const dataset: KoboDataset = {
+      fileName: 'x.csv',
+      headers: ['date_debut', 'date_fin'],
+      rows: [
+        { date_debut: '2026-01-01', date_fin: '2026-01-05' },
+        { date_debut: '2026-02-10', date_fin: '2026-02-01' },
+      ],
+    };
+    const variables = [makeVar({ name: 'date_fin', constraint: '. >= ${date_debut}' })];
+    const issues = detectCrossFieldInconsistencies(dataset, variables);
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ column: 'date_fin', relatedColumn: 'date_debut', count: 1 });
+  });
+
+  it('ignore les lignes où une des deux valeurs est vide', () => {
+    const dataset: KoboDataset = {
+      fileName: 'x.csv',
+      headers: ['a', 'b'],
+      rows: [{ a: '', b: '10' }, { a: '5', b: '' }],
+    };
+    const variables = [makeVar({ name: 'a', constraint: '. >= ${b}' })];
+    expect(detectCrossFieldInconsistencies(dataset, variables)).toHaveLength(0);
+  });
+
+  it('ne signale rien quand aucune contrainte ne référence une autre variable', () => {
+    const dataset: KoboDataset = { fileName: 'x.csv', headers: ['age'], rows: [{ age: '20' }] };
+    const variables = [makeVar({ name: 'age', constraint: '. >= 0 and . <= 120' })];
+    expect(detectCrossFieldInconsistencies(dataset, variables)).toHaveLength(0);
   });
 });
 

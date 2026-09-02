@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { SheetState } from '../../lib/xlsform/sheetState';
 import { emptyRow } from '../../lib/xlsform/sheetState';
 import { SIMPLE_TYPES } from '../../lib/xlsform/constants';
@@ -23,6 +24,17 @@ function moveItem<T>(arr: T[], from: number, to: number): T[] {
 }
 
 export function ManualBuilder({ survey, choices, settings, onChangeSurvey, onChangeChoices, onChangeSettings }: ManualBuilderProps) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  function handleDrop(targetIdx: number) {
+    if (dragIndex !== null && dragIndex !== targetIdx) {
+      onChangeSurvey({ ...survey, rows: moveItem(survey.rows, dragIndex, targetIdx) });
+    }
+    setDragIndex(null);
+    setDragOverIndex(null);
+  }
+
   function updateSurveyCell(idx: number, key: string, value: string) {
     const rows = survey.rows.map((r, i) => (i === idx ? { ...r, [key]: value } : r));
     onChangeSurvey({ ...survey, rows });
@@ -40,6 +52,7 @@ export function ManualBuilder({ survey, choices, settings, onChangeSurvey, onCha
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
           <thead>
             <tr>
+              <th />
               {SURVEY_EDIT_COLUMNS.map((c) => (
                 <th key={c} style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', padding: '0.3rem' }}>
                   {c}
@@ -50,7 +63,28 @@ export function ManualBuilder({ survey, choices, settings, onChangeSurvey, onCha
           </thead>
           <tbody>
             {survey.rows.map((row, idx) => (
-              <tr key={idx}>
+              <tr
+                key={idx}
+                draggable
+                onDragStart={() => setDragIndex(idx)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverIndex(idx);
+                }}
+                onDragLeave={() => setDragOverIndex((cur) => (cur === idx ? null : cur))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleDrop(idx);
+                }}
+                onDragEnd={() => {
+                  setDragIndex(null);
+                  setDragOverIndex(null);
+                }}
+                style={dragOverIndex === idx ? { background: 'var(--suggestion-bg)' } : undefined}
+              >
+                <td style={{ cursor: 'grab', padding: '0.2rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }} title="Glisser pour réordonner">
+                  ⠿
+                </td>
                 {SURVEY_EDIT_COLUMNS.map((c) => (
                   <td key={c} style={{ padding: '0.2rem', borderBottom: '1px solid var(--border)' }}>
                     {c === 'type' ? (
