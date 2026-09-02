@@ -2,9 +2,16 @@ import type { KoboDataset } from './importKobo';
 import type { DictVariable } from '../scripts/dictionary';
 import { isTechnicalColumn } from './technicalColumns';
 
+function isTruthy(value: string | undefined): boolean {
+  const v = (value ?? '').trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'oui' || v === 'yes';
+}
+
+export type SelectMultipleMode = 'none' | 'decompose' | 'recompose';
+
 export interface PrepareOptions {
   removeTechnicalColumns: boolean;
-  decomposeSelectMultiple: boolean;
+  selectMultipleMode: SelectMultipleMode;
   replaceCodesWithLabels: boolean;
   columnsToAnonymize: string[];
   anonymizeMode: 'remove' | 'mask';
@@ -27,7 +34,7 @@ export function prepareDataset(dataset: KoboDataset, variables: DictVariable[], 
 
   const byName = new Map(variables.map((v) => [v.name, v]));
 
-  if (options.decomposeSelectMultiple) {
+  if (options.selectMultipleMode === 'decompose') {
     const selectMultiples = variables.filter((v) => v.isSelectMultiple && headers.includes(v.name));
     for (const v of selectMultiples) {
       const newCols = v.choices.map((c) => `${v.name}_${c.code}`);
@@ -41,6 +48,28 @@ export function prepareDataset(dataset: KoboDataset, variables: DictVariable[], 
       const insertAt = headers.indexOf(v.name) + 1;
       headers = [...headers.slice(0, insertAt), ...newCols, ...headers.slice(insertAt)];
       operations.push(`« ${v.name} » (choix multiples) décomposée en ${newCols.length} colonnes binaires.`);
+    }
+  }
+
+  if (options.selectMultipleMode === 'recompose') {
+    const selectMultiples = variables.filter((v) => v.isSelectMultiple);
+    for (const v of selectMultiples) {
+      // Colonnes binaires possibles : export brut Kobo ("nom/code") ou décomposition de cet outil ("nom_code").
+      const subColumns = v.choices
+        .map((c) => ({ code: c.code, header: headers.find((h) => h === `${v.name}/${c.code}` || h === `${v.name}_${c.code}`) }))
+        .filter((e): e is { code: string; header: string } => Boolean(e.header));
+      if (subColumns.length === 0) continue;
+
+      rows = rows.map((row) => {
+        const selected = subColumns
+          .filter(({ header }) => isTruthy(row[header]))
+          .map(({ code }) => code);
+        return { ...row, [v.name]: selected.join(' ') };
+      });
+
+      if (!headers.includes(v.name)) headers = [subColumns[0].header, v.name, ...headers.filter((h) => h !== subColumns[0].header)];
+      headers = headers.filter((h) => !subColumns.some((s) => s.header === h));
+      operations.push(`« ${v.name} » (choix multiples) recomposée depuis ${subColumns.length} colonne(s) binaire(s).`);
     }
   }
 

@@ -4,7 +4,7 @@ import { importKoboFile } from '../lib/kobo/importKobo';
 import type { KoboDataset } from '../lib/kobo/importKobo';
 import { buildQualityReport } from '../lib/kobo/qualityChecks';
 import { prepareDataset } from '../lib/kobo/prepare';
-import type { PrepareOptions } from '../lib/kobo/prepare';
+import type { PrepareOptions, SelectMultipleMode } from '../lib/kobo/prepare';
 import { downloadCleaningReport, downloadDatasetAsCsv, downloadDatasetAsXlsx } from '../lib/kobo/exportCleaned';
 import { looksIdentifying } from '../lib/kobo/technicalColumns';
 import { parseXlsxFile } from '../lib/xlsform/parseWorkbook';
@@ -18,7 +18,7 @@ export function DataProcessing() {
   const [prepared, setPrepared] = useState<{ dataset: KoboDataset; operations: string[] } | null>(null);
 
   const [removeTechnicalColumns, setRemoveTechnicalColumns] = useState(true);
-  const [decomposeSelectMultiple, setDecomposeSelectMultiple] = useState(true);
+  const [selectMultipleMode, setSelectMultipleMode] = useState<SelectMultipleMode>('decompose');
   const [replaceCodesWithLabels, setReplaceCodesWithLabels] = useState(false);
   const [anonymizeMode, setAnonymizeMode] = useState<'remove' | 'mask'>('remove');
   const [columnsToAnonymize, setColumnsToAnonymize] = useState<string[]>([]);
@@ -51,7 +51,7 @@ export function DataProcessing() {
     if (!dataset) return;
     const options: PrepareOptions = {
       removeTechnicalColumns,
-      decomposeSelectMultiple,
+      selectMultipleMode,
       replaceCodesWithLabels,
       columnsToAnonymize,
       anonymizeMode,
@@ -159,15 +159,36 @@ export function DataProcessing() {
             <input type="checkbox" checked={removeTechnicalColumns} onChange={(e) => setRemoveTechnicalColumns(e.target.checked)} /> Supprimer
             les colonnes techniques Kobo (_id, _uuid, _submission_time…)
           </label>
-          <label style={{ display: 'block', marginBottom: '0.4rem' }}>
-            <input
-              type="checkbox"
-              checked={decomposeSelectMultiple}
-              onChange={(e) => setDecomposeSelectMultiple(e.target.checked)}
-              disabled={variables.length === 0}
-            />{' '}
-            Décomposer les choix multiples en colonnes binaires {variables.length === 0 && '(fournir le XLSForm)'}
-          </label>
+          <div style={{ marginBottom: '0.4rem' }}>
+            <span>Questions à choix multiples {variables.length === 0 && '(fournir le XLSForm pour activer)'} :</span>
+            <br />
+            <label style={{ marginRight: '1rem', fontSize: '0.9rem' }}>
+              <input
+                type="radio"
+                checked={selectMultipleMode === 'none'}
+                onChange={() => setSelectMultipleMode('none')}
+              />{' '}
+              Ne rien changer
+            </label>
+            <label style={{ marginRight: '1rem', fontSize: '0.9rem' }}>
+              <input
+                type="radio"
+                checked={selectMultipleMode === 'decompose'}
+                onChange={() => setSelectMultipleMode('decompose')}
+                disabled={variables.length === 0}
+              />{' '}
+              Décomposer en colonnes binaires
+            </label>
+            <label style={{ fontSize: '0.9rem' }}>
+              <input
+                type="radio"
+                checked={selectMultipleMode === 'recompose'}
+                onChange={() => setSelectMultipleMode('recompose')}
+                disabled={variables.length === 0}
+              />{' '}
+              Recomposer en une liste de codes
+            </label>
+          </div>
           <label style={{ display: 'block', marginBottom: '0.4rem' }}>
             <input
               type="checkbox"
