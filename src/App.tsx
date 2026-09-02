@@ -3,7 +3,7 @@ import { Home } from './pages/Home';
 import { Validator } from './pages/Validator';
 import { Generator } from './pages/Generator';
 import { Scripts } from './pages/Scripts';
-import { ComingSoon } from './pages/ComingSoon';
+import { DataProcessing } from './pages/DataProcessing';
 
 export function App() {
   return (
@@ -26,15 +26,7 @@ export function App() {
           <Route path="/validateur" element={<Validator />} />
           <Route path="/generateur" element={<Generator />} />
           <Route path="/scripts" element={<Scripts />} />
-          <Route
-            path="/donnees"
-            element={
-              <ComingSoon
-                title="Traitement des données Kobo"
-                description="Nettoyage, contrôle qualité et anonymisation d'un export de collecte KoboToolbox."
-              />
-            }
-          />
+          <Route path="/donnees" element={<DataProcessing />} />
         </Routes>
       </main>
       <footer className="app-footer">

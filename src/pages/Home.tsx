@@ -23,7 +23,7 @@ const MODULES = [
     to: '/donnees',
     title: '4. Traitement des données Kobo',
     desc: 'Nettoyez et préparez un export de collecte KoboToolbox.',
-    ready: false,
+    ready: true,
   },
 ];
 
