@@ -1,6 +1,7 @@
 import { NavLink, Route, Routes } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Validator } from './pages/Validator';
+import { Generator } from './pages/Generator';
 import { ComingSoon } from './pages/ComingSoon';
 
 export function App() {
@@ -22,15 +23,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/validateur" element={<Validator />} />
-          <Route
-            path="/generateur"
-            element={
-              <ComingSoon
-                title="Générateur XLSForm"
-                description="Construction assistée d'un questionnaire (saisie ou collage) et génération d'un fichier .xlsx conforme."
-              />
-            }
-          />
+          <Route path="/generateur" element={<Generator />} />
           <Route
             path="/scripts"
             element={

@@ -11,7 +11,7 @@ const MODULES = [
     to: '/generateur',
     title: '2. Générateur XLSForm',
     desc: 'Construisez ou collez un questionnaire et générez un fichier XLSForm conforme.',
-    ready: false,
+    ready: true,
   },
   {
     to: '/scripts',
